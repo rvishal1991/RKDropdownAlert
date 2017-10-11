@@ -7,18 +7,16 @@
 //
 //  objective-c objc obj c
 
+#define Is_IPhoneX [UIScreen mainScreen].nativeBounds.size.height
+
 #import "RKDropdownAlert.h"
 
 NSString *const RKDropdownAlertDismissAllNotification = @"RKDropdownAlertDismissAllNotification";
 
-//%%% CUSTOMIZE FOR DEFAULT SETTINGS
-// These values specify what the view will look like
-static int HEIGHT = 90; //height of the alert view
 static float ANIMATION_TIME = .3; //time it takes for the animation to complete in seconds
 static int X_BUFFER = 10; //buffer distance on each side for the text
 static int Y_BUFFER = 10; //buffer distance on top/bottom for the text
 static int TIME = 3; //default time in seconds before the view is hidden
-static int STATUS_BAR_HEIGHT = 20;
 static int FONT_SIZE = 14;
 NSString *DEFAULT_TITLE;
 
@@ -46,9 +44,15 @@ NSString *DEFAULT_TITLE;
 
 - (id)initWithFrame:(CGRect)frame
 {
+    
     self = [super initWithFrame:frame];
     if (self) {
         [self setupDefaultAttributes];
+        int STATUS_BAR_HEIGHT = 20;
+        
+        if (Is_IPhoneX == 2436 ){
+            STATUS_BAR_HEIGHT = 44;
+        }
         
         self.backgroundColor = defaultViewColor;
         
@@ -68,14 +72,14 @@ NSString *DEFAULT_TITLE;
         messageLabel.textAlignment = NSTextAlignmentCenter;
         [self addSubview:messageLabel];
         
-        [self addTarget:self action:@selector(viewWasTapped:) forControlEvents:UIControlEventTouchUpInside];
+        [self addTarget:self action:@selector(hideView:) forControlEvents:UIControlEventTouchUpInside];
         
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(dismissAlertView)
                                                      name:RKDropdownAlertDismissAllNotification
                                                    object:nil];
         self.isShowing = NO;
-
+        
     }
     return self;
 }
@@ -104,6 +108,11 @@ NSString *DEFAULT_TITLE;
 
 -(void)hideView:(UIButton *)alertView
 {
+    int HEIGHT = 90;
+    if (Is_IPhoneX == 2436){
+        HEIGHT = 112;
+    }
+    
     if (alertView) {
         [UIView animateWithDuration:ANIMATION_TIME animations:^{
             CGRect frame = alertView.frame;
@@ -132,12 +141,24 @@ NSString *DEFAULT_TITLE;
 //%%% these are necessary methods that call each other depending on which method you call. Generally shouldn't edit these unless you know what you're doing
 
 +(RKDropdownAlert*)alertView {
+    
+    int HEIGHT = 90;
+    if (Is_IPhoneX == 2436){
+        HEIGHT = 112;
+    }
+    
     RKDropdownAlert *alert = [[self alloc]initWithFrame:CGRectMake(0, -HEIGHT, [[UIScreen mainScreen]bounds].size.width, HEIGHT)];
     return alert;
 }
 
 +(RKDropdownAlert*)alertViewWithDelegate:(id<RKDropdownAlertDelegate>)delegate
 {
+    
+    int HEIGHT = 90;
+    if (Is_IPhoneX == 2436){
+        HEIGHT = 112;
+    }
+    
     RKDropdownAlert *alert = [[self alloc]initWithFrame:CGRectMake(0, -HEIGHT, [[UIScreen mainScreen]bounds].size.width, HEIGHT)];
     alert.delegate = delegate;
     return alert;
@@ -245,7 +266,14 @@ NSString *DEFAULT_TITLE;
     NSInteger time = seconds;
     titleLabel.text = title;
     
-    if (message && message.length > 0) {
+    int STATUS_BAR_HEIGHT = 20;
+    int HEIGHT = 90 ;
+    if (Is_IPhoneX == 2436 ){
+        STATUS_BAR_HEIGHT = 44;
+        HEIGHT = 112;
+    }
+    
+    if (message) {
         messageLabel.text = message;
         if ([self messageTextIsOneLine]) {
             CGRect frame = titleLabel.frame;
@@ -275,10 +303,10 @@ NSString *DEFAULT_TITLE;
         NSEnumerator *frontToBackWindows = [[[UIApplication sharedApplication]windows]reverseObjectEnumerator];
         
         for (UIWindow *window in frontToBackWindows)
-            if (window.windowLevel == UIWindowLevelNormal && !window.hidden) {
-                [window addSubview:self];
-                break;
-            }
+        if (window.windowLevel == UIWindowLevelNormal && !window.hidden) {
+            [window addSubview:self];
+            break;
+        }
     }
     
     self.isShowing = YES;
@@ -289,7 +317,7 @@ NSString *DEFAULT_TITLE;
         self.frame = frame;
     }];
     
-    [self performSelector:@selector(hideView:) withObject:self afterDelay:time+ANIMATION_TIME];
+    [self performSelector:@selector(viewWasTapped:) withObject:self afterDelay:time+ANIMATION_TIME];
 }
 
 
